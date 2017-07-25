@@ -17,7 +17,7 @@ dur = 10;       %Duration of sampling per tap in seconds
 %Allocate memory
 P = taps*0;P_std= P;TempK = P;Static_Pa = P;
 
-DAQSetup
+DAQXSetup
 %Homes the scanivalve
 homeScani(daqCal,ScaniHome);
 
@@ -25,7 +25,7 @@ homeScani(daqCal,ScaniHome);
 ichan =  {Temperature,TunnelStatic,Scanivalve};
 %Add input channels
 for i = 1:length(ichan)
-    ch = addAnalogInputChannel(daqCal,'Dev4',ichan{i}.Channel,'Voltage');% Motor Controller Voltage
+    ch = addAnalogInputChannel(daqCal,ichan{i}.dev,ichan{i}.Channel,'Voltage');% Motor Controller Voltage
     ch.Name = ichan{i}.Name;
     ch.Range = ichan{i}.Range;
 end

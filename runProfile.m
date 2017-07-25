@@ -16,10 +16,10 @@
 % Is the hand held controller toggled to PC and connected?
 % Is the Start button pressed?
 
-% Okay, now you can start data acquisition in the Superpipe. 
-% 
+% Okay, now you can start data acquisition in the Superpipe.
+%
 % Before turning off the Superpipe, did you move the traverse to the wall?
-% 
+%
 % Questions please be directed to princetonsuperpipe@gmail.com
 
 
@@ -34,7 +34,7 @@ cd(pathstr);
 data.numPos =   40;        % Number of y points
 data.ymin =     60e-3;      % Closest point to the wall (mm)
 data.ymax =     67;          % Furthest point to the wall (mm)
-data.ySet = logspace(log10(data.ymin),log10(data.ymax),data.numPos);    %Y - Location set points
+data.ySet =     logspace(log10(data.ymin),log10(data.ymax),data.numPos);    %Y - Location set points
 data.D =        0.1298448;
 data.pitot =    3.209;
 data.cline =    (data.D*1000-data.ymin-data.pitot)/2;
@@ -43,7 +43,7 @@ disp('Are the following testing parameters correct [Press Enter]?')
 reply = input(sprintf('y_offset: %0.3f mm\ny_max: %0.3f mm\nPitot dist: %0.3f mm\nCenterline: %0.3f mm\n',...
     data.ymin,data.ymax,data.pitot,data.cline));
 
-
+%Pre-allocated memory
 data.yActual = data.ySet*0;meanU = data.ySet*0;varU = data.ySet*0;
 data.TempK = [data.yActual,0];data.Static_Pa = data.TempK;
 
@@ -63,11 +63,14 @@ reply = input(sprintf('Gain: %i\nOffset: %0.3f V\nR_0: %0.2f ohms\nRext: %0.2f o
 
 %% Sampling Parameters
 data.rate =     200000;    % Data acquisition frequency
-data.dur =      75;           % Data sample time sec
-data.Vset =     7.2;              % Voltage Set point
-rampSpeed =     .1;          % V/sec
+data.dur =      75;        % Data sample time sec
+data.Vset =     7.2;       % Voltage Set point
+rampSpeed =     .1;        % V/sec
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+%% Calibration Parameters
+calSet.sampleDuration = 30;     % Data sample time
+calSet.Vs = [linspace(0,2.8,10),linspace(3,Vmax,numPoints-10)];%linspace(0,Vmax,numPoints);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Generate Precal file
 direc = uigetdir;
 fname = 'Precal';mkdir(direc,fname);
@@ -75,27 +78,19 @@ cd(direc);cd(fname)
 
 %% Query centerline
 m = traverse();
-% center = input('Centerline position (mm)? : ');
-% while isempty(center)
-%     center = input('\n Empty input: Centerline position (mm)? : ');
-% end
-% [pos,~] = m.locate();
-% fprintf('Current location is %0.4f mm \n\n',pos)
-% fprintf('Press enter to move %0.4f mm?\n',center-pos)
-% pause
 
 % Move to centerline for Precal
 [pos,~] = m.locate();
 disp('Moving to Centerline')
 [pos,~] = m.move(data.cline-pos);
-% if abs(center - pos) > 0.3
-%     [~,~] = m.move(center-pos);
-% end
+if abs(center - pos) > 0.3
+    [~,~] = m.move(data.cline-pos);
+end
 
 %% Start Precal
 disp('Starting Precal')
 tic
-Vtemp = runCalibration(fname);
+Vtemp = calibrateX(calSet,fname);
 send_text_message('703-508-3338','T-Mobile','Precal Done',num2str(toc))
 %%
 cd(direc);cd(fname)
@@ -103,11 +98,11 @@ load('summary.mat','U','V');
 poly_deg = 4;U_cutoff = 1;
 [P,S] = polyfit(V(U > U_cutoff),U(U > U_cutoff),poly_deg);
 cd(direc)
-DAQSetup
+DAQXSetup
 % Ramp tunnel speed to set voltage
 %Add motor out
 disp('Adding motor channel')
-ch = addAnalogOutputChannel(daqCal,'Dev4',MotorOut.Channel,'Voltage');% Motor Controller Voltage
+ch = addAnalogOutputChannel(daqCal,MotorOut.dev,MotorOut.Channel,'Voltage');% Motor Controller Voltage
 ch.Name = MotorOut.Name;
 ch.Range = MotorOut.Range;
 %
@@ -142,9 +137,9 @@ for i = 1:data.numPos
     fprintf('Starting point - %d/%d :\n\tMoving to %d um\n',i,data.numPos,round(data.ySet(i)*1000))
     if i == 1
         pos = m.locate();
-%         if(data.ySet(i)-pos)>0.1
-%             pos = m.move(data.ySet(i)-pos);
-%         end
+        %         if(data.ySet(i)-pos)>0.1
+        %             pos = m.move(data.ySet(i)-pos);
+        %         end
     elseif(i > 1)
         pos = m.move(data.ySet(i)-data.ySet(i-1));
     end
@@ -154,7 +149,7 @@ for i = 1:data.numPos
     ichan =  {Temperature,TunnelStatic};
     %Add input channels
     for j = 1:length(ichan)
-        ch = addAnalogInputChannel(daqCal,'Dev4',ichan{j}.Channel,'Voltage');% Motor Controller Voltage
+        ch = addAnalogInputChannel(daqCal,ichan{i}.dev,ichan{j}.Channel,'Voltage');% Motor Controller Voltage
         ch.Name = ichan{j}.Name;
         ch.Range = ichan{j}.Range;
     end
@@ -168,10 +163,10 @@ for i = 1:data.numPos
     data.Static_Pa(i) = TunnelStatic.cal(mean(pre_data(:,2)));
     
     %Take the hotwire data
-    ichan =  {Dantec};
+    ichan =  {hw1,hw2};
     %Add input channels
     for j = 1:length(ichan)
-        ch = addAnalogInputChannel(daqCal,'Dev4',ichan{j}.Channel,'Voltage');% Motor Controller Voltage
+        ch = addAnalogInputChannel(daqCal,ichan{i}.dev,ichan{j}.Channel,'Voltage');% Motor Controller Voltage
         ch.Name = ichan{j}.Name;
         ch.Range = ichan{j}.Range;
     end
@@ -182,30 +177,30 @@ for i = 1:data.numPos
     [data_hw,time] = daqCal.startForeground();
     daqCal.removeChannel(1:length(daqCal.Channels));
     
-    fprintf('\tConverting Data with Precal\n')
-    hwdata = Dantec.cal(P,data_hw);
-    meanU(i) = mean(hwdata);
-    varU(i) = var(hwdata);
-    
-    %Plots the raw signal
-    figure(1)
-    semilogx((data.yActual(1:i))./(eta),meanU(1:i)/utau,'bo-')
-    xlabel('y^+')
-    ylabel('U^+')
-    
-    %Plots the raw signal
-    figure(2)
-    semilogx((data.yActual(1:i))./(eta),varU(1:i)/utau^2,'bo-')
-    xlabel('y^+')
-    ylabel('u^{2+}')
-    
-    drawnow
+%     fprintf('\tConverting Data with Precal\n')
+%     hwdata = Dantec.cal(P,data_hw);
+%     meanU(i) = mean(hwdata);
+%     varU(i) = var(hwdata);
+%     
+%     Plots the raw signal
+%     figure(1)
+%     semilogx((data.yActual(1:i))./(eta),meanU(1:i)/utau,'bo-')
+%     xlabel('y^+')
+%     ylabel('U^+')
+%     
+%     Plots the raw signal
+%     figure(2)
+%     semilogx((data.yActual(1:i))./(eta),varU(1:i)/utau^2,'bo-')
+%     xlabel('y^+')
+%     ylabel('u^{2+}')
+%     
+%     drawnow
     
     data.name{i} = sprintf('V%0.2f_Index%i_YLoc%0.2f.bin',data.Vset,i,data.ySet(i)*1000);
     fid = fopen(data.name{i},'wb');
     fwrite(fid,[time,data_hw],'single'); %
     fclose(fid);
-    %fread(fopen(data.name{i},'r'),[2,inf],'ubit16');
+    %fread(fopen(data.name{i},'r'),[3,inf],'ubit16');
 end
 
 %Take the Temperature & Static Pressure
@@ -230,10 +225,10 @@ data.TempK = data.TempK(1:end-1)+diff(data.TempK)./2;
 data.Static_Pa = data.Static_Pa(1:end-1)+diff(data.Static_Pa)./2;
 % Save the testing Data
 send_text_message('703-508-3338','T-Mobile','Data taking is Done',num2str(toc))
-figure(1)
-    print('mean','-dpng')
-figure(2)
-    print('var','-dpng')
+% figure(1)
+% print('mean','-dpng')
+% figure(2)
+% print('var','-dpng')
 
 save('acquisition.mat','data')
 
@@ -271,15 +266,15 @@ clf
 plot(U,V,'rx')
 hold on
 
-Vtemp = runCalibration(fname);
+Vtemp = calibrateX(calSet,fname);
 send_text_message('703-508-3338','T-Mobile','Postcal is Done',num2str(toc))
 
 % Ramp voltage down
-DAQSetup
+DAQXSetup
 % Ramp down for the Postcal
 %Add motor out
 disp('Adding motor channel')
-ch = addAnalogOutputChannel(daqCal,'Dev4',MotorOut.Channel,'Voltage');% Motor Controller Voltage
+ch = addAnalogOutputChannel(daqCal,MotorOut.dev,MotorOut.Channel,'Voltage');% Motor Controller Voltage
 ch.Name = MotorOut.Name;
 ch.Range = MotorOut.Range;
 
@@ -291,9 +286,9 @@ cd(direc);
 %release(daqCal);
 % Process
 %
-process
+processX
 send_text_message('703-508-3338','T-Mobile',sprintf('Re_tau = %d',round(data.D/2/eta*1000)),'Test Completed')
-% 
+%
 % DAQSetup
 % %% Ramp down for the Postcal
 % %Add motor out
@@ -302,8 +297,8 @@ send_text_message('703-508-3338','T-Mobile',sprintf('Re_tau = %d',round(data.D/2
 % ch = addAnalogOutputChannel(daqCal,'Dev4',MotorOut.Channel,'Voltage');% Motor Controller Voltage
 % ch.Name = MotorOut.Name;
 % ch.Range = MotorOut.Range;
-% 
-% 
+%
+%
 % queueOutputData(daqCal,linspace(6,0,daqCal.Rate/rampSpeed*abs(6))');
 % daqCal.startForeground();
 % cd ..
@@ -317,8 +312,8 @@ send_text_message('703-508-3338','T-Mobile',sprintf('Re_tau = %d',round(data.D/2
 % ch = addAnalogOutputChannel(daqCal,'Dev4',MotorOut.Channel,'Voltage');% Motor Controller Voltage
 % ch.Name = MotorOut.Name;
 % ch.Range = MotorOut.Range;
-% 
-% 
+%
+%
 % queueOutputData(daqCal,linspace(0.6,0,daqCal.Rate/0.1*abs(0.6))');
 % daqCal.startForeground();
 % cd ..
