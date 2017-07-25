@@ -219,6 +219,8 @@ daqCal.removeChannel(1:length(daqCal.Channels))
 
 data.TempK(i+1) = Temperature.cal(mean(pre_data(:,1)));
 data.Static_Pa(i+1) = TunnelStatic.cal(mean(pre_data(:,2)));
+data.y_plus = data.yActual./eta;
+data.Re_tau = data.D/2/eta*1000;
 
 %Get the average temperature during the run
 data.TempK = data.TempK(1:end-1)+diff(data.TempK)./2;
@@ -287,6 +289,7 @@ cd(direc);
 % Process
 %
 processX
+
 send_text_message('703-508-3338','T-Mobile',sprintf('Re_tau = %d',round(data.D/2/eta*1000)),'Test Completed')
 %
 % DAQSetup

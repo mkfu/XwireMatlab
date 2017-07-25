@@ -85,7 +85,7 @@ dpdx.DPDX1 = DPDX1;dpdx.DPDX2 = DPDX2;
 dpdx.Rho  = Rho;dpdx.mu = mu;dpdx.eta = eta;dpdx.utau= utau;
 fprintf('Re_tau = %d\n',round(D/2/eta*1000))
 
-save('dpdx.mat','dpdx','utau','eta')
+save('dpdx.mat','dpdx','utau','eta','Rho')
 end
 
 %Homes the scanivalve
