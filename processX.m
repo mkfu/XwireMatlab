@@ -133,9 +133,10 @@ for i = 1:data.numPos
     u_prime = (F_fluc+G_fluc)./2-(F_fluc-G_fluc).*lambda./2;
     v_prime = (F_fluc-G_fluc)./2./beta;
     
-    varU(i) = var(u_prime);
-    varV(i) = var(v_prime);
-    covUV(i) = cov(u_prime,v_prime);
+    temp = cov(u_prime,v_prime);
+    varU(i) = temp(1,1);
+    varV(i) = temp(2,2);
+    covUV(i) = temp(2,1);
     
 
 end
