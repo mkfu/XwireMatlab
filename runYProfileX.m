@@ -62,14 +62,13 @@ reply = input(sprintf('Gain: %i\nOffset: %0.3f V\nR_0: %0.2f ohms\nRext: %0.2f o
 
 
 %% Sampling Parameters
-data.rate =     200000;    % Data acquisition frequency
-data.dur =      75;        % Data sample time sec
+data.rate =     20000;    % Data acquisition frequency
+data.dur =      1;        % Data sample time sec
 data.Vset =     7.2;       % Voltage Set point
 rampSpeed =     .1;        % V/sec
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Calibration Parameters
-calSet.sampleDuration = 30;     % Data sample time
-calSet.Vs = [linspace(0,2.8,10),linspace(3,Vmax,numPoints-10)];%linspace(0,Vmax,numPoints);
+Vmax =          8.2;
+calSet.sampleDuration = 3;     % Data sample time
+calSet.Vs = [linspace(0,2.8,10),linspace(3,Vmax,10)];%linspace(0,Vmax,numPoints);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Generate Precal file
 direc = uigetdir;
@@ -83,7 +82,7 @@ m = traverse();
 [pos,~] = m.locate();
 disp('Moving to Centerline')
 [pos,~] = m.move(data.cline-pos);
-if abs(center - pos) > 0.3
+if abs(data.cline - pos) > 0.3
     [~,~] = m.move(data.cline-pos);
 end
 
@@ -91,12 +90,12 @@ end
 disp('Starting Precal')
 tic
 Vtemp = calibrateX(calSet,fname);
-send_text_message('703-508-3338','T-Mobile','Precal Done',num2str(toc))
+%% send_text_message('703-508-3338','T-Mobile','Precal Done',num2str(toc))
 %%
 cd(direc);cd(fname)
-load('summary.mat','U','V');
-poly_deg = 4;U_cutoff = 1;
-[P,S] = polyfit(V(U > U_cutoff),U(U > U_cutoff),poly_deg);
+% load('summary.mat','U','V');
+% poly_deg = 4;U_cutoff = 1;
+% [P,S] = polyfit(V(U > U_cutoff),U(U > U_cutoff),poly_deg);
 cd(direc)
 DAQXSetup
 % Ramp tunnel speed to set voltage
@@ -132,7 +131,7 @@ disp(sprintf('Current location is %0.4f mm \n',pos));
 m.findWall()
 m.move(0.246);
 %Backlash Correct()
-%
+%%
 for i = 1:data.numPos
     fprintf('Starting point - %d/%d :\n\tMoving to %d um\n',i,data.numPos,round(data.ySet(i)*1000))
     if i == 1
@@ -149,7 +148,7 @@ for i = 1:data.numPos
     ichan =  {Temperature,TunnelStatic};
     %Add input channels
     for j = 1:length(ichan)
-        ch = addAnalogInputChannel(daqCal,ichan{i}.dev,ichan{j}.Channel,'Voltage');% Motor Controller Voltage
+        ch = addAnalogInputChannel(daqCal,ichan{j}.dev,ichan{j}.Channel,'Voltage');% Motor Controller Voltage
         ch.Name = ichan{j}.Name;
         ch.Range = ichan{j}.Range;
     end
@@ -166,7 +165,7 @@ for i = 1:data.numPos
     ichan =  {hw1,hw2};
     %Add input channels
     for j = 1:length(ichan)
-        ch = addAnalogInputChannel(daqCal,ichan{i}.dev,ichan{j}.Channel,'Voltage');% Motor Controller Voltage
+        ch = addAnalogInputChannel(daqCal,ichan{j}.dev,ichan{j}.Channel,'Voltage');% Motor Controller Voltage
         ch.Name = ichan{j}.Name;
         ch.Range = ichan{j}.Range;
     end
@@ -226,7 +225,7 @@ data.Re_tau = data.D/2/eta*1000;
 data.TempK = data.TempK(1:end-1)+diff(data.TempK)./2;
 data.Static_Pa = data.Static_Pa(1:end-1)+diff(data.Static_Pa)./2;
 % Save the testing Data
-send_text_message('703-508-3338','T-Mobile','Data taking is Done',num2str(toc))
+%% send_text_message('703-508-3338','T-Mobile','Data taking is Done',num2str(toc))
 % figure(1)
 % print('mean','-dpng')
 % figure(2)
@@ -263,13 +262,13 @@ if abs(data.cline - pos) > 0.3
 end
 % Start Postcal
 disp('Starting Postcal')
-figure(1)
-clf
-plot(U,V,'rx')
-hold on
+% figure(1)
+% clf
+% plot(U,V,'rx')
+% hold on
 
 Vtemp = calibrateX(calSet,fname);
-send_text_message('703-508-3338','T-Mobile','Postcal is Done',num2str(toc))
+%% send_text_message('703-508-3338','T-Mobile','Postcal is Done',num2str(toc))
 
 % Ramp voltage down
 DAQXSetup
@@ -287,10 +286,10 @@ daqCal.startForeground();
 cd(direc);
 %release(daqCal);
 % Process
-%
+%%
 processX
 
-send_text_message('703-508-3338','T-Mobile',sprintf('Re_tau = %d',round(data.D/2/eta*1000)),'Test Completed')
+%% send_text_message('703-508-3338','T-Mobile',sprintf('Re_tau = %d',round(data.D/2/eta*1000)),'Test Completed')
 %
 % DAQSetup
 % %% Ramp down for the Postcal

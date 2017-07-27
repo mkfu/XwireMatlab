@@ -40,7 +40,7 @@ hw1.Channel = 'ai3';                hw1.cal =  @(P,V) polyval(P,V);
 hw1.Name = 'Dantec';                hw1.Range = [-10,10];
 hw1.dev = 'Dev4';
 
-hw2.Channel = 'ai3';                hw2.cal =  @(P,V) polyval(P,V);
+hw2.Channel = 'ai5';                hw2.cal =  @(P,V) polyval(P,V);
 hw2.Name = 'Dantec';                hw2.Range = [-10,10];
 hw2.dev = 'Dev4';
 

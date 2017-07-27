@@ -59,7 +59,7 @@ elseif nargin==1;
 else
     calSet = varargin{1};
 end
-
+numPoints = length(calSet.Vs);
 
 Vout = zeros(calSet.sampleDuration*daqCal.Rate,1);
 diffVs = [calSet.Vs(1), diff(calSet.Vs)];
@@ -67,7 +67,7 @@ Vset = 0;
 
 %% Set the pause criteria
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-pauseTimes = calSet.Vs*0+30;       %Default wait time 30 seconds
+pauseTimes = calSet.Vs*0+3;       %Default wait time 30 seconds
 % pauseTimes(calSet.Vs <= 3) = 60; %Velocities less than ~10m/s wait 5 min
 % pauseTimes(calSet.Vs > 3) = 30;    %Velocities larger than ~10m/s wait 20 sec
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -107,7 +107,7 @@ for i = 1:numPoints
         'V2_std',std(captured_data(:,5)),...
         'Raw',captured_data,...
         'Rate',daqCal.Rate,...
-        'sampleDuration',sampleDuration);
+        'sampleDuration',calSet.sampleDuration);
     if(mean(data.Static_Pa)<100000)
         [Rho, mu] = ZSI(mean(data.TempK),101325);
     else
@@ -124,14 +124,16 @@ for i = 1:numPoints
     fprintf('\tSaving Data as %s \n\n',tempName)
     save(tempName,'data');
     
-    plot(data.U,data.V1,'bo')
-    hold on
-    plot(data.U,data.V2,'ro')
-    hold off
+
     
     U(i) = data.U;
     V1(i) = data.V1;    V1_std(i) = data.V1_std;
     V2(i) = data.V2;    V2_std(i) = data.V2_std;
+    
+    plot(U,V1,'bo')
+    hold on
+    plot(U,V2,'ro')
+    hold off
     
     TempK(i) = data.TempK;
     Static_Pa(i) = data.Static_Pa;

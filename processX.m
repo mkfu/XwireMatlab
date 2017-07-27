@@ -3,9 +3,9 @@ clear
 %% Load the pre and post calibration files
 load('dpdx.mat','utau','eta','Rho')
 cd('Precal'); load('summary.mat','U','V1','V2','TempK');cd ..
-U_pre = U;  V1_pre= V;  V2_pre= V;  T_pre = TempK;
+U_pre = U;  V1_pre= V1;  V2_pre= V2;  T_pre = TempK;
 cd('Postcal'); load('summary.mat','U','V1','V2','TempK');cd ..
-U_post = U; V_post=V;   V2_post= V; T_post = TempK;
+U_post = U; V1_post=V1;   V2_post= V2; T_post = TempK;
 cd('Data');load('acquisition.mat'); cd ..
 %% Compute the polynomials
 poly_deg = 4;U_cutoff = 0.1;
@@ -31,7 +31,7 @@ f = @(P,V,T) polyval(P,V_corr(V,T));
     U_post(U_post>U_cutoff),poly_deg);
 
 cal_curve.P1 = P1;        cal_curve.S1 = S1;
-cal_curve.P1pre = P1pre;  cal_curve.S1pre = Spre;
+cal_curve.P1pre = P1pre;  cal_curve.S1pre = S1pre;
 cal_curve.P1post = P1post;  cal_curve.S1post = S1post;
 %% V2
 %Both calibrations
@@ -54,7 +54,7 @@ cal_curve.P2post = P2post;  cal_curve.S2post = S2post;
 %%  Plots the pre and post cals
 figure(1)
 clf
-Vs = linspace(min(V_all),max(V_all),100);
+Vs = linspace(min(V1_all),max(V1_all),100);
 
 %v1
 plot(U_post,V_corr(V1_post,T_post),'ro')
@@ -88,8 +88,9 @@ skewU = data.ySet'*0;
 var2U = data.ySet'*0;
 
 iter = 1;
+cd('Data')
 for i = 1:data.numPos
-    if data.y_plus > 250
+    if data.y_plus(i) > 250
         fl = fopen(data.name{i},'r');
         temp = fread(fl,[data.dur*data.rate,3],'single');
         fclose(fl);
@@ -99,7 +100,7 @@ for i = 1:data.numPos
         
         F_fluc = F - mean(F);
         G_fluc = G - mean(G);
-        
+        iter
         uv(iter,1) = utau.^2.*(1-data.y_plus(i)./data.Re_tau);
         p(iter,1) = 1/4.*(var(F_fluc)-var(G_fluc));
         q(iter,1) = 1/4.*var(F_fluc-G_fluc);
@@ -108,7 +109,7 @@ for i = 1:data.numPos
         continue;
     end
 end
-
+uv
 ft = fittype( 'beta*x+lambda*y', 'independent', {'x', 'y'}, 'dependent', 'z' );
 opts = fitoptions( 'Method', 'NonlinearLeastSquares' );
 
@@ -117,7 +118,7 @@ beta =  calFit.beta;
 alpha = calFit.lambda*beta;
 lambda = calFit.lambda;
 
-u_prime = 
+
 for i = 1:data.numPos
     
     fl = fopen(data.name{i},'r');
@@ -140,3 +141,4 @@ for i = 1:data.numPos
     
 
 end
+cd ..
