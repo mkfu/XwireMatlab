@@ -90,7 +90,6 @@ end
 disp('Starting Precal')
 tic
 Vtemp = calibrateX(calSet,fname);
-%% send_text_message('703-508-3338','T-Mobile','Precal Done',num2str(toc))
 %%
 cd(direc);cd(fname)
 % load('summary.mat','U','V');
@@ -225,7 +224,6 @@ data.Re_tau = data.D/2/eta*1000;
 data.TempK = data.TempK(1:end-1)+diff(data.TempK)./2;
 data.Static_Pa = data.Static_Pa(1:end-1)+diff(data.Static_Pa)./2;
 % Save the testing Data
-%% send_text_message('703-508-3338','T-Mobile','Data taking is Done',num2str(toc))
 % figure(1)
 % print('mean','-dpng')
 % figure(2)
@@ -268,7 +266,6 @@ disp('Starting Postcal')
 % hold on
 
 Vtemp = calibrateX(calSet,fname);
-%% send_text_message('703-508-3338','T-Mobile','Postcal is Done',num2str(toc))
 
 % Ramp voltage down
 DAQXSetup
@@ -289,7 +286,6 @@ cd(direc);
 %%
 processX
 
-%% send_text_message('703-508-3338','T-Mobile',sprintf('Re_tau = %d',round(data.D/2/eta*1000)),'Test Completed')
 %
 % DAQSetup
 % %% Ramp down for the Postcal
