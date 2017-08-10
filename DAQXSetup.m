@@ -40,7 +40,7 @@ hw1.Channel = 'ai3';                hw1.cal =  @(P,V) polyval(P,V);
 hw1.Name = 'Dantec';                hw1.Range = [-10,10];
 hw1.dev = 'Dev4';
 
-hw2.Channel = 'ai5';                hw2.cal =  @(P,V) polyval(P,V);
+hw2.Channel = 'ai7';                hw2.cal =  @(P,V) polyval(P,V);
 hw2.Name = 'Dantec';                hw2.Range = [-10,10];
 hw2.dev = 'Dev4';
 
@@ -56,8 +56,8 @@ Pitot5.Channel = 'ai6';             Pitot5.cal = @(V) V*5/5*6894.75729; %1psi/5V
 Pitot5.Name = 'Pitot5';             Pitot5.Range = [-5,5];
 Pitot5.dev = 'Dev4';
 
-LimitSwitch.Channel = 'ai7';        LimitSwitch.cal = @(V) min(V)>1;
-LimitSwitch.Name = 'LimitSwitch';   LimitSwitch.Range = [-10,10];
-LimitSwitch.dev = 'Dev4';
+% LimitSwitch.Channel = 'ai7';        LimitSwitch.cal = @(V) min(V)>1;
+% LimitSwitch.Name = 'LimitSwitch';   LimitSwitch.Range = [-10,10];
+% LimitSwitch.dev = 'Dev4';
 
 d = daq.getDevices; daqCal = daq.createSession('ni');
