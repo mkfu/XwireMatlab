@@ -67,6 +67,8 @@ data.dur =      1;        % Data sample time sec
 data.Vset =     7.2;       % Voltage Set point
 rampSpeed =     .1;        % V/sec
 Vmax =          8.2;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 calSet.sampleDuration = 3;     % Data sample time
 calSet.Vs = [linspace(0,2.8,10),linspace(3,Vmax,10)];%linspace(0,Vmax,numPoints);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

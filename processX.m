@@ -47,9 +47,9 @@ cal_curve.P2 = P2;        cal_curve.S2 = S2;
 cal_curve.P2pre = P2pre;  cal_curve.S2pre = S2pre;
 cal_curve.P2post = P2post;  cal_curve.S2post = S2post;
 
-%S.normr %=sqrt(sum((U_all(cal_data)-f(P,V_all(cal_data),T_all(cal_data))).^2))
-% rsq = 1 - S.normr^2 / ((length(U_all(cal_data))-1) * var(U_all(cal_data)))...
-%     .*(length(cal_data)-1)/(length(cal_data)-length(P));
+S.normr =sqrt(sum((U_all(cal_data)-f(P,V_all(cal_data),T_all(cal_data))).^2))
+ rsq = 1 - S.normr^2 / ((length(U_all(cal_data))-1) * var(U_all(cal_data)))...
+     .*(length(cal_data)-1)/(length(cal_data)-length(P));
 
 %%  Plots the pre and post cals
 figure(1)
@@ -92,7 +92,9 @@ cd('Data')
 for i = 1:data.numPos
     if data.y_plus(i) > 250
         fl = fopen(data.name{i},'r');
-        temp = fread(fl,[data.dur*data.rate,3],'single');
+        %temp = fread(fl,[data.dur*data.rate,3],'single');
+        temp = fread(fl,'single');
+        temp = reshape(temp,[],3);
         fclose(fl);
         
         F = f(P1,temp(:,2),data.TempK(i));
