@@ -45,7 +45,7 @@ if nargin==0;
     Vmax = 8.2;             % Max voltage (0-10V)
     numPoints = 20;          % Number of samples
     
-    calSet.sampleDuration = 30;     % Data sample time
+    calSet.sampleDuration = 10;     % Data sample time
     calSet.Vs = [linspace(0,2.8,10),linspace(3,Vmax,numPoints-10)];%linspace(0,Vmax,numPoints);
     
 elseif nargin==1;
@@ -67,7 +67,7 @@ Vset = 0;
 
 %% Set the pause criteria
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-pauseTimes = calSet.Vs*0+3;       %Default wait time 30 seconds
+pauseTimes = calSet.Vs*0+20;       %Default wait time 30 seconds
 % pauseTimes(calSet.Vs <= 3) = 60; %Velocities less than ~10m/s wait 5 min
 % pauseTimes(calSet.Vs > 3) = 30;    %Velocities larger than ~10m/s wait 20 sec
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
