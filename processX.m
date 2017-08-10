@@ -117,7 +117,7 @@ calFit = fit([uv,q],p,ft,opts);
 beta =  calFit.beta;
 alpha = calFit.lambda*beta;
 lambda = calFit.lambda;
-
+n_window = 2^17;
 
 for i = 1:data.numPos
     
@@ -131,14 +131,19 @@ for i = 1:data.numPos
     meanU(i,2) = mean(G);
     F_fluc = F - mean(F);
     G_fluc = G - mean(G);
-    u_prime = (F_fluc+G_fluc)./2-(F_fluc-G_fluc).*lambda./2;
-    v_prime = (F_fluc-G_fluc)./2./beta;
+    u_fluc = (F_fluc+G_fluc)./2-(F_fluc-G_fluc).*lambda./2;
+    v_fluc = (F_fluc-G_fluc)./2./beta;
     
-    temp = cov(u_prime,v_prime);
+    temp = cov(u_fluc,v_fluc);
     varU(i) = temp(1,1);
     varV(i) = temp(2,2);
     covUV(i) = temp(2,1);
     
-
+    [phi_uu,F] = pwelch(u_fluc,n_window,[],[],data.rate);
+    [phi_vv,F] = pwelch(v_fluc,n_window,[],[],data.rate);
+    [phi_uv,F] = cpsd(u_fluc,v_fluc,n_window,[],[],data.rate);
+    Puu(:,i) = phi_uu;
+    Pvv(:,i) = phi_vv;
+    Puv(:,i) = phi_uv;
 end
 cd ..
