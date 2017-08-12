@@ -65,8 +65,8 @@ data.Thot_1 = (data.Rext_1/data.R0_1-1)./data.alpha;
 data.Thot_2 = (data.Rext_2/data.R0_2-1)./data.alpha;
 
 disp('Are the following testing parameters correct [Press Enter]?')
-reply = input(sprintf('Gain: %i\nOffset: %0.3f V\nR_0_1: %0.2f ohms\nRext_1: %0.2f ohms\nR_0_2: %0.2f ohms\nRext_2: %0.2f ohms\n',...
-    data.Gain,data.Offset,data.R0_1,data.Rext_1,data.R0_2,data.Rext_2));
+reply = input(sprintf('Gain: %i\nOffset: %0.3f V\nR_0: %0.2f ohms\nRext: %0.2f ohms\n',...
+    data.Gain,data.Offset,data.R0,data.Rext));
 
 
 %% Sampling Parameters
@@ -78,7 +78,7 @@ Vmax =          8.2;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 calSet.sampleDuration = 3;     % Data sample time
-calSet.Vs = [linspace(0,2,10),linspace(3,Vmax,10)];%linspace(0,Vmax,numPoints);
+calSet.Vs = [linspace(0,2.8,10),linspace(3,Vmax,10)];%linspace(0,Vmax,numPoints);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Generate Precal file
 direc = uigetdir;
