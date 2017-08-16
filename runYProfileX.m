@@ -31,12 +31,12 @@ cd(pathstr);
 
 %% Testing Parameters
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-data.numPos =   40;        % Number of y points
-data.ymin =     60e-3;      % Closest point to the wall (mm)
+data.numPos =   20;        % Number of y points
+data.ymin =     1.783;      % Closest point to the wall (mm)
 data.ymax =     67;          % Furthest point to the wall (mm)
 data.ySet =     logspace(log10(data.ymin),log10(data.ymax),data.numPos);    %Y - Location set points
 data.D =        0.1298448;
-data.pitot =    3.209;      % Pitot center distance to the wall (mm)
+data.pitot =    6.33;      % Pitot center distance to the wall (mm)
 data.cline =    (data.D*1000-data.ymin-data.pitot)/2;
 
 disp('Are the following testing parameters correct [Press Enter]?')
@@ -48,14 +48,18 @@ data.yActual = data.ySet*0;meanU = data.ySet*0;varU = data.ySet*0;
 data.TempK = [data.yActual,0];data.Static_Pa = data.TempK;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-data.Gain =     64;          %Gain on the Dantec
-data.Offset =   -0.652;    %Voltage
+%data.Gain =     64;          %Gain on the Dantec
+%data.Offset =   -0.602;    %Voltage
 
-data.R0_1=        128.1;
-data.Rext_1 =     171;
+data.R0_1=        108.6;
+data.Rext_1 =     134.2;
+data.Gain_1 =     32;          %Gain on the Dantec
+data.Offset_1 =   -0.734;    %Voltage
 
-data.R0_2=        128.1;
-data.Rext_2 =     171;
+data.R0_2=        105.2;
+data.Rext_2 =     134.2;
+data.Gain_2 =     32;          %Gain on the Dantec
+data.Offset_2 =   -0.735;    %Voltage
 
 data.l =     	60e-3;  %mm length of wire
 
@@ -65,20 +69,22 @@ data.Thot_1 = (data.Rext_1/data.R0_1-1)./data.alpha;
 data.Thot_2 = (data.Rext_2/data.R0_2-1)./data.alpha;
 
 disp('Are the following testing parameters correct [Press Enter]?')
-reply = input(sprintf('Gain: %i\nOffset: %0.3f V\nR_0_1: %0.2f ohms\nRext_1: %0.2f ohms\nR_0_2: %0.2f ohms\nRext_2: %0.2f ohms\n',...
-    data.Gain,data.Offset,data.R0_1,data.Rext_1,data.R0_2,data.Rext_2));
+reply = input(sprintf('Gain 1: %i\nOffset 1: %0.3f V\nGain 2: %i\nOffset 2: %0.3f V\nR_0_1: %0.2f ohms\nRext_1: %0.2f ohms\nR_0_2: %0.2f ohms\nRext_2: %0.2f ohms\n',...
+    data.Gain_1,data.Offset_1,data.Gain_2,data.Offset_2,data.R0_1,data.Rext_1,data.R0_2,data.Rext_2));
 
 
 %% Sampling Parameters
-data.rate =     20000;    % Data acquisition frequency
-data.dur =      1;        % Data sample time sec
-data.Vset =     7.2;       % Voltage Set point
+data.rate =     300000;    % Data acquisition frequency
+data.dur =      15;        % Data sample time sec
+data.Vset =     3.2;       % Voltage Set point
 rampSpeed =     .1;        % V/sec
-Vmax =          8.2;
+Vmax =          4;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-calSet.sampleDuration = 3;     % Data sample time
-calSet.Vs = [linspace(0,2,10),linspace(3,Vmax,10)];%linspace(0,Vmax,numPoints);
+calSet.sampleDuration = 10;     % Data sample time
+%calSet.Vs = [linspace(0,2,10),linspace(4,Vmax,6)];%linspace(0,Vmax,numPoints);
+calSet.Vs = linspace(0,Vmax,18);
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Generate Precal file
 direc = uigetdir;
@@ -123,6 +129,7 @@ daqCal.removeChannel(length(daqCal.Channels));
 %Wait for the speed to stabilize
 disp('Pausing for 20 seconds')
 pause(20);
+%%
 % dPdX
 disp('Finding dp/dx')
 %
@@ -140,7 +147,7 @@ disp(sprintf('Current location is %0.4f mm \n',pos));
 m.findWall()
 m.move(0.246);
 %Backlash Correct()
-%%
+%
 for i = 1:data.numPos
     fprintf('Starting point - %d/%d :\n\tMoving to %d um\n',i,data.numPos,round(data.ySet(i)*1000))
     if i == 1
@@ -183,8 +190,14 @@ for i = 1:data.numPos
     
     fprintf('\tSampling the Dantec for %d secs\n',daqCal.DurationInSeconds)
     [data_hw,time] = daqCal.startForeground();
+    fprintf('\tSampling the Dantec for %d secs\n',daqCal.DurationInSeconds)
+    [data_hw2,time2] = daqCal.startForeground();
     daqCal.removeChannel(1:length(daqCal.Channels));
-    
+    data.name{i} = sprintf('V%0.2f_Index%i_YLoc%0.2f.bin',data.Vset,i,data.ySet(i)*1000);
+    fid = fopen(data.name{i},'wb');
+    fwrite(fid,[time,data_hw],'single');
+    fwrite(fid,[time2,data_hw2],'single');%
+    fclose(fid);
 %     fprintf('\tConverting Data with Precal\n')
 %     hwdata = Dantec.cal(P,data_hw);
 %     meanU(i) = mean(hwdata);
@@ -204,10 +217,7 @@ for i = 1:data.numPos
 %     
 %     drawnow
     
-    data.name{i} = sprintf('V%0.2f_Index%i_YLoc%0.2f.bin',data.Vset,i,data.ySet(i)*1000);
-    fid = fopen(data.name{i},'wb');
-    fwrite(fid,[time,data_hw],'single'); %
-    fclose(fid);
+
     %fread(fopen(data.name{i},'r'),[3,inf],'ubit16');
 end
 
@@ -215,7 +225,7 @@ end
 ichan =  {Temperature,TunnelStatic};
 %Add input channels
 for j = 1:length(ichan)
-    ch = addAnalogInputChannel(daqCal,'Dev4',ichan{j}.Channel,'Voltage');% Motor Controller Voltage
+    ch = addAnalogInputChannel(daqCal,ichan{j}.dev,ichan{j}.Channel,'Voltage');% Motor Controller Voltage
     ch.Name = ichan{j}.Name;
     ch.Range = ichan{j}.Range;
 end
@@ -244,7 +254,7 @@ save('acquisition.mat','data')
 % Ramp down for the Postcal
 %Add motor out
 disp('Adding motor channel')
-ch = addAnalogOutputChannel(daqCal,'Dev4',MotorOut.Channel,'Voltage');% Motor Controller Voltage
+ch = addAnalogOutputChannel(daqCal,MotorOut.dev,MotorOut.Channel,'Voltage');% Motor Controller Voltage
 ch.Name = MotorOut.Name;
 ch.Range = MotorOut.Range;
 %
@@ -293,7 +303,7 @@ daqCal.startForeground();
 cd(direc);
 %release(daqCal);
 % Process
-%%
+%
 processX
 
 %

@@ -4,7 +4,7 @@ function [Vset] = runCalibration(varargin)
 rampSpeed = .1;         % V/sec
 DAQXSetup
 %% Select Proper Transducer
-transducer = Pitot02;
+transducer = Pitot1;
 
 %Open valve to pitot transducer
 ch = addDigitalChannel(daqCal,transducer.Ddev,transducer.DChannel,'OutputOnly');% Motor Controller Voltage
@@ -67,9 +67,9 @@ Vset = 0;
 
 %% Set the pause criteria
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-pauseTimes = calSet.Vs*0+20;       %Default wait time 30 seconds
-% pauseTimes(calSet.Vs <= 3) = 60; %Velocities less than ~10m/s wait 5 min
-% pauseTimes(calSet.Vs > 3) = 30;    %Velocities larger than ~10m/s wait 20 sec
+pauseTimes = calSet.Vs*0+15;       %Default wait time 30 seconds
+%  pauseTimes(calSet.Vs <= 3) = 30; %Velocities less than ~10m/s wait 5 min
+%  pauseTimes(calSet.Vs > 3) = 15;    %Velocities larger than ~10m/s wait 20 sec
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Iteration

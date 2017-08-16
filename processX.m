@@ -8,7 +8,7 @@ cd('Postcal'); load('summary.mat','U','V1','V2','TempK');cd ..
 U_post = U; V1_post=V1;   V2_post= V2; T_post = TempK;
 cd('Data');load('acquisition.mat'); cd ..
 %% Compute the polynomials
-poly_deg = 4;U_cutoff = 0.1;
+poly_deg = 4;U_cutoff = 0.5;
 T_ref = T_pre(1);   T_w1 = data.Thot_1; T_w2 = data.Thot_2;
 
 U_all = [U_pre,U_post];
@@ -71,7 +71,7 @@ plot(f1(P1post,Vs,T_pre(1)),Vs,'r')
 %v2
 plot(U_post,V_corr2(V2_post,T_post),'rs')
 plot(U_pre,V_corr2(V2_pre,T_pre),'bs')
-plot(U_all(cal_data),V_corr2(V2_all(cal_data),T_all(cal_data)),'kv')
+plot(U_all(cal_data),V_corr2(V2_all(cal_data),T_all(cal_data)),'kx')
 set(gca,'fontsize',24)
 plot(f2(P2,Vs,T_pre(1)),Vs,'k')
 plot(f2(P2pre,Vs,T_pre(1)),Vs,'b')
@@ -92,11 +92,11 @@ var2U = data.ySet'*0;
 iter = 1;
 cd('Data')
 for i = 1:data.numPos
-    if data.y_plus(i) > 250
+    if data.y_plus(i) >1000
         fl = fopen(data.name{i},'r');
         %temp = fread(fl,[data.dur*data.rate,3],'single');
         temp = fread(fl,'single');
-        temp = reshape(temp,[],3);
+        temp = reshape(temp,[],6);temp = [temp(:,1:3);temp(:,4:6)];
         fclose(fl);
         
         F = f1(P1,temp(:,2),data.TempK(i));
@@ -122,11 +122,13 @@ beta =  calFit.beta;
 alpha = calFit.lambda*beta;
 lambda = calFit.lambda;
 n_window = 2^17;
-
+%%
 for i = 1:data.numPos
-    
+    i
     fl = fopen(data.name{i},'r');
-    temp = fread(fl,[data.dur*data.rate,3],'single');
+    %temp = fread(fl,[data.dur*data.rate*2,3],'single');
+    temp = fread(fl,'single');
+    temp = reshape(temp,[],6);temp = [temp(:,1:3);temp(:,4:6)];
     fclose(fl);
     
     F = f1(P1,temp(:,2),data.TempK(i));
@@ -138,16 +140,52 @@ for i = 1:data.numPos
     u_fluc = (F_fluc+G_fluc)./2-(F_fluc-G_fluc).*lambda./2;
     v_fluc = (F_fluc-G_fluc)./2./beta;
     
-    temp = cov(u_fluc,v_fluc);
-    varU(i) = temp(1,1);
-    varV(i) = temp(2,2);
-    covUV(i) = temp(2,1);
+    temp2 = cov(u_fluc,v_fluc);
+    varU(i) = temp2(1,1);
+    varV(i) = temp2(2,2);
+    covUV(i) = temp2(2,1);
     
-    [phi_uu,F] = pwelch(u_fluc,n_window,[],[],data.rate);
-    [phi_vv,F] = pwelch(v_fluc,n_window,[],[],data.rate);
-    [phi_uv,F] = cpsd(u_fluc,v_fluc,n_window,[],[],data.rate);
-    Puu(:,i) = phi_uu;
-    Pvv(:,i) = phi_vv;
-    Puv(:,i) = phi_uv;
+    [phi_uu,F] = pwelch(reshape(u_fluc,[],2),n_window,[],[],data.rate);
+    [phi_vv,F] = pwelch(reshape(v_fluc,[],2),n_window,[],[],data.rate);
+    [phi_uv,F] = cpsd(reshape(u_fluc,[],2),reshape(v_fluc,[],2),n_window,[],[],data.rate);
+    Puu(:,i) = mean(phi_uu,2);
+    Pvv(:,i) = mean(phi_vv,2);
+    Puv(:,i) = mean(phi_uv,2);
 end
+%
+u2_plus = varU./utau^2;
+v2_plus = varV./utau^2;
+uv_plus = covUV./utau^2;
+U_plus = meanU./utau;
+%
+y_plus = data.yActual./eta;
+figure(2)
+clf
+semilogx(y_plus,mean(meanU')./utau,'o')
+xlabel('y^+')
+ylabel('U^+')
+
+figure(3)
+clf
+semilogx(y_plus,varU./utau^2,'o')
+xlabel('y^+')
+ylabel('u^{2+}')
+
+figure(4)
+clf
+semilogx(y_plus,varV./utau^2,'o')
+xlabel('y^+')
+ylabel('v^{2+}')
+
+
+figure(5)
+clf
+plot(data.yActual.*2./data.D/1000,covUV./utau^2,'o')
+hold on
+plot(linspace(0,1,100),1-linspace(0,1,100))
+hold off
+xlabel('y/R')
+ylabel('uv^+')
+save('acquisition.mat','utau','y_plus','meanU','u2_plus','varU','U_plus','v2_plus','varV','covUV','uv_plus','-append')
 cd ..
+

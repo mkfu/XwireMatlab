@@ -12,7 +12,7 @@ moves = diff([1,taps]);
 D = 0.1298448;  %Pipe diameter in meters
 dx = 25*D/19;   %Spacing between the taps in meters
 rate =10000;    %Samples rate (S/s)
-dur = 10;       %Duration of sampling per tap in seconds
+dur = 5;       %Duration of sampling per tap in seconds
 
 %Allocate memory
 P = taps*0;P_std= P;TempK = P;Static_Pa = P;
@@ -73,8 +73,8 @@ DPDX2 = DPDX2.p1
 if(mean(Static_Pa)<100000)
     [Rho, mu] = ZSI(mean(TempK),101325);
 else
-    [Rho, mu] = ZSI(mean(TempK),101325);
-    %[Rho, mu] = ZSI(mean(TempK),mean(Static_Pa));
+    %[Rho, mu] = ZSI(mean(TempK),101325);
+    [Rho, mu] = ZSI(mean(TempK),mean(Static_Pa));
 end
 utau = sqrt((-DPDX2./Rho)*(D./4))
 eta = mu./Rho./utau*1000;
@@ -91,7 +91,7 @@ end
 
 %Homes the scanivalve
 function homeScani(daqCal,ScaniHome)
-ch = addDigitalChannel(daqCal,'Dev4',ScaniHome.DChannel,'OutputOnly');
+ch = addDigitalChannel(daqCal,ScaniHome.Ddev,ScaniHome.DChannel,'OutputOnly');
 outputSingleScan(daqCal,1);
 pause(2)
 outputSingleScan(daqCal,0);
@@ -101,7 +101,7 @@ end
 
 %Skips to the next tap on the scanivalve
 function skipScani(daqCal,ScaniSkip,i)
-ch = addDigitalChannel(daqCal,'Dev4',ScaniSkip.DChannel,'OutputOnly');
+ch = addDigitalChannel(daqCal,ScaniSkip.Ddev,ScaniSkip.DChannel,'OutputOnly');
 if i > 0
     for p = 1:i
         outputSingleScan(daqCal,1);
