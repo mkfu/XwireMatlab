@@ -48,7 +48,7 @@ Pitot02.Channel = 'ai4';            Pitot02.cal = @(V) V*0.2/5*6894.75729; %0.2p
 Pitot02.Name = 'Pitot02';           Pitot02.Range = [-5,5];
 Pitot02.dev = 'Dev5';
 
-Pitot1.Channel = 'ai5';             Pitot1.cal = @(V) V*1/5*6894.75729; %1psi/5V
+Pitot1.Channel = 'ai5';             Pitot1.cal = @(V) V*1.25/5*6894.75729; %1psi/5V
 Pitot1.Name = 'Pitot1';             Pitot1.Range = [-5,5];
 Pitot1.dev = 'Dev5';
 
