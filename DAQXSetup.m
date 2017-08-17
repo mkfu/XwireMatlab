@@ -32,7 +32,7 @@ Scanivalve.Channel = 'ai1';         Scanivalve.cal = @(V)   V.* 133.322; %1V/tor
 Scanivalve.Name = 'Scanivalve';     Scanivalve.Range = [-5,5];
 Scanivalve.dev = 'Dev5';
 
-TunnelStatic.Channel = 'ai2';       TunnelStatic.cal = @(V) V.*4000/10.*6894.75729 ;
+TunnelStatic.Channel = 'ai2';       TunnelStatic.cal = @(V) V.*500/10.*6894.75729 ;
 TunnelStatic.Name = 'TunnelStatic'; TunnelStatic.Range = [-10,10];
 TunnelStatic.dev = 'Dev5';
 
