@@ -74,7 +74,7 @@ if(mean(Static_Pa)<100000)
     [Rho, mu] = ZSI(mean(TempK),101325);
 else
     %[Rho, mu] = ZSI(mean(TempK),101325);
-    [Rho, mu] = ZSI(mean(TempK),mean(Static_Pa));
+    [Rho, mu] = ZSI(mean(TempK),mean(Static_Pa)+101325);
 end
 utau = sqrt((-DPDX2./Rho)*(D./4))
 eta = mu./Rho./utau*1000;
