@@ -111,7 +111,7 @@ for i = 1:numPoints
     if(mean(data.Static_Pa)<100000)
         [Rho, mu] = ZSI(mean(data.TempK),101325);
     else
-        [Rho, mu] = ZSI(mean(data.TempK),mean(data.Static_Pa));
+        [Rho, mu] = ZSI(mean(data.TempK),mean(data.Static_Pa)+101325);
     end
     data.rho = Rho;
     if i == 1
